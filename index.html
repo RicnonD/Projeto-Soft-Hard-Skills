@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Soft e Hard Skills</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+        .card {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .card h2 {
+            margin: 0;
+            font-size: 18px;
+            color: #333;
+        }
+        .card p {
+            font-size: 24px;
+            color: #1E90FF;
+        }
+        #bar-chart, #line-chart, #pie-chart {
+            width: 100%;
+            height: 400px;
+        }
+
+        .question-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            grid-column: span 3;
+        }
+
+        .question {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+        }
+
+        .options {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .option {
+            padding: 10px 20px;
+            background-color: #1E90FF;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .option:hover {
+            background-color: #4682B4;
+        }
+
+        .selected {
+            background-color: #4682B4;
+        }
+
+        #result-section {
+            margin-top: 20px;
+            display: none;
+        }
+
+        #courses {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align:center;">DASHBOARD SOFT E HARD SKILLS</h1>
+
+    <!-- Indicadores numéricos -->
+    <div class="dashboard">
+        <div class="card">
+            <h2>Trabalho em Equipe</h2>
+            <p id="teamwork-score">0</p>
+        </div>
+        <div class="card">
+            <h2>Gestão de Tempo</h2>
+            <p id="time-management-score">0</p>
+        </div>
+        <div class="card">
+            <h2>Tecnologia</h2>
+            <p id="tech-score">0</p>
+        </div>
+    </div>
+
+    <!-- Teste de Soft Skills -->
+    <div class="dashboard">
+        <div class="question-container">
+            <div class="question" id="question">Aguarde, carregando pergunta...</div>
+            <div class="options" id="options"></div>
+        </div>
+    </div>
+
+    <div id="result-section">
+        <h2>Resultados do Teste</h2>
+        <div class="dashboard">
+            <div class="card">
+                <h2>Soft Skills</h2>
+                <p id="soft-skills-score">0</p>
+            </div>
+            <div class="card">
+                <h2>Hard Skills</h2>
+                <p id="hard-skills-score">0</p>
+            </div>
+        </div>
+        <div id="courses">
+            <h3>Recomendações de Cursos</h3>
+            <p>Confira os cursos oferecidos pela Fundação Bradesco: <a href="https://www.ev.org.br/cursos" target="_blank">Cursos da Fundação Bradesco</a></p>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            { question: "Você prefere trabalhar sozinho ou em equipe?", options: ["Em equipe", "Sozinho", "Ambos"], skill: "trabalhoEquipe" },
+            { question: "Como você lida com prazos curtos?", options: ["Gosto do desafio", "Me sinto pressionado", "Acho normal"], skill: "gestaoTempo" },
+            { question: "Quão confortável você se sente ao aprender novas ferramentas tecnológicas?", options: ["Muito confortável", "Confortável", "Pouco confortável", "Desconfortável"], skill: "tecnologia" },
+            { question: "Você se considera uma pessoa organizada?", options: ["Sim", "Não"], skill: "gestaoTempo" },
+            { question: "Você gosta de aprender novas habilidades?", options: ["Sim", "Não", "Às vezes"], skill: "tecnologia" },
+            { question: "Você consegue trabalhar sob pressão?", options: ["Sim", "Não"], skill: "trabalhoEquipe" },
+            { question: "Você é bom em resolver problemas?", options: ["Sim", "Não", "Às vezes"], skill: "tecnologia" },
+            { question: "Você consegue priorizar suas tarefas?", options: ["Sim", "Não"], skill: "gestaoTempo" },
+            { question: "Você se comunica bem com os outros?", options: ["Sim", "Não", "Às vezes"], skill: "trabalhoEquipe" },
+            { question: "Você se sente confortável apresentando suas ideias?", options: ["Sim", "Não", "Às vezes"], skill: "tecnologia" },
+            { question: "Você costuma pedir feedback sobre seu trabalho?", options: ["Sim", "Não"], skill: "trabalhoEquipe" },
+            { question: "Você gosta de trabalhar em projetos em grupo?", options: ["Sim", "Não", "Às vezes"], skill: "trabalhoEquipe" },
+        ];
+
+        const skills = {
+            trabalhoEquipe: 0,
+            gestaoTempo: 0,
+            tecnologia: 0,
+        };
+
+        let currentQuestion = 0;
+
+        function loadQuestion() {
+            document.getElementById('question').textContent = questions[currentQuestion].question;
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            questions[currentQuestion].options.forEach(option => {
+                const optionElement = document.createElement('div');
+                optionElement.classList.add('option');
+                optionElement.textContent = option;
+                optionElement.setAttribute('data-answer', option);
+                optionElement.addEventListener('click', selectOption);
+                optionsContainer.appendChild(optionElement);
+            });
+        }
+
+        function selectOption(event) {
+            const answer = event.target.getAttribute('data-answer');
+            const skill = questions[currentQuestion].skill;
+            const scoreMap = {
+                "Em equipe": 5,
+                "Sozinho": 2,
+                "Ambos": 3,
+                "Gosto do desafio": 5,
+                "Me sinto pressionado": 2,
+                "Acho normal": 3,
+                "Muito confortável": 5,
+                "Confortável": 4,
+                "Pouco confortável": 3,
+                "Desconfortável": 2,
+                "Sim": 5,
+                "Não": 2,
+                "Às vezes": 3,
+            };
+            skills[skill] += scoreMap[answer] || 3;
+
+            // Marcar a opção selecionada
+            document.querySelectorAll('.option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+
+            // Avançar para a próxima pergunta
+            currentQuestion++;
+            setTimeout(() => {
+                if (currentQuestion < questions.length) {
+                    loadQuestion();
+                } else {
+                    showResults();
+                }
+            }, 500); // Atraso de 500ms
+        }
+
+        function showResults() {
+            document.getElementById('result-section').style.display = 'block';
+            document.getElementById('teamwork-score').textContent = skills.trabalhoEquipe;
+            document.getElementById('time-management-score').textContent = skills.gestaoTempo;
+            document.getElementById('tech-score').textContent = skills.tecnologia;
+
+            // Calcular scores
+            const softSkillsScore = skills.trabalhoEquipe + skills.gestaoTempo;
+            const hardSkillsScore = skills.tecnologia;
+
+            document.getElementById('soft-skills-score').textContent = softSkillsScore;
+            document.getElementById('hard-skills-score').textContent = hardSkillsScore;
+
+            // Gráficos de resultados
+            Plotly.newPlot('bar-chart', [{
+                x: ['Soft Skills', 'Hard Skills'],
+                y: [softSkillsScore, hardSkillsScore],
+                type: 'bar',
+                marker: {color: ['rgba(76, 175, 80, 0.8)', 'rgba(0, 123, 255, 0.8)']}
+            }], {title: 'Desempenho em Soft e Hard Skills',            layout: {
+                xaxis: { title: 'Tipo de Habilidade' },
+                yaxis: { title: 'Pontuação' },
+                showlegend: false,
+                paper_bgcolor: '#f4f4f9',
+                plot_bgcolor: '#fff',
+                font: { color: '#333' }
+            }
+        });
+
+        Plotly.newPlot('line-chart', [{
+            x: ['Trabalho em Equipe', 'Gestão de Tempo', 'Tecnologia'],
+            y: [skills.trabalhoEquipe, skills.gestaoTempo, skills.tecnologia],
+            mode: 'lines+markers',
+            type: 'scatter',
+            marker: { size: 10, color: 'rgba(255, 165, 0, 0.8)' }
+        }], {
+            title: 'Desempenho em Habilidades Específicas',
+            layout: {
+                xaxis: { title: 'Habilidades' },
+                yaxis: { title: 'Pontuação' },
+                paper_bgcolor: '#f4f4f9',
+                plot_bgcolor: '#fff',
+                font: { color: '#333' }
+            }
+        });
+
+        Plotly.newPlot('pie-chart', [{
+            values: [softSkillsScore, hardSkillsScore],
+            labels: ['Soft Skills', 'Hard Skills'],
+            type: 'pie',
+            marker: { colors: ['rgba(76, 175, 80, 0.8)', 'rgba(0, 123, 255, 0.8)'] },
+            textinfo: 'label+percent',
+            hoverinfo: 'label+value'
+        }], {
+            title: 'Distribuição de Habilidades',
+            layout: {
+                paper_bgcolor: '#f4f4f9',
+                plot_bgcolor: '#fff',
+                font: { color: '#333' }
+            }
+        });
+
+        // Exibir recomendações de cursos com base na pontuação
+        const coursesContainer = document.getElementById('courses');
+        const recommendations = [];
+        if (softSkillsScore > 15) {
+            recommendations.push("Curso Avançado em Liderança");
+        } else {
+            recommendations.push("Curso Básico em Comunicação Eficaz");
+        }
+
+        if (hardSkillsScore > 15) {
+            recommendations.push("Curso Avançado em Ferramentas Tecnológicas");
+        } else {
+            recommendations.push("Curso Básico em Informática");
+        }
+
+        coursesContainer.innerHTML += `<ul>${recommendations.map(course => `<li>${course}</li>`).join('')}</ul>`;
+        }
+
+        // Carregar a primeira pergunta ao iniciar
+        window.onload = loadQuestion;
+    </script>
+
+    <!-- Gráficos -->
+    <div class="dashboard">
+        <div id="bar-chart"></div>
+        <div id="line-chart"></div>
+        <div id="pie-chart"></div>
+    </div>
+</body>
+</html>
