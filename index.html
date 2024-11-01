@@ -14,8 +14,13 @@
         }
         .dashboard {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
             gap: 20px;
+        }
+        .desktop-view {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        .mobile-view {
+            grid-template-columns: 1fr;
         }
         .card {
             background-color: #fff;
@@ -33,11 +38,10 @@
             font-size: 24px;
             color: #1E90FF;
         }
-        #bar-chart, #line-chart, #pie-chart {
+        #pie-chart, #line-chart, #bar-chart {
             width: 100%;
             height: 400px;
         }
-
         .question-container {
             background-color: #fff;
             padding: 20px;
@@ -46,74 +50,59 @@
             text-align: center;
             grid-column: span 3;
         }
-
         .question {
             font-size: 1.4rem;
             margin-bottom: 20px;
         }
-
         .options {
             display: flex;
             justify-content: center;
             gap: 10px;
+            flex-wrap: wrap;
         }
-
         .option {
             padding: 10px 20px;
             background-color: #1E90FF;
             color: white;
             border-radius: 5px;
             cursor: pointer;
+            flex: 1 1 calc(33.33% - 10px);
         }
-
         .option:hover {
             background-color: #4682B4;
         }
-
         .selected {
             background-color: #4682B4;
         }
-
         #result-section {
             margin-top: 20px;
             display: none;
         }
-
         #courses {
             margin-top: 20px;
+        }
+        #toggleButton {
+            margin-bottom: 20px;
+            padding: 10px 15px;
+            background-color: #1E90FF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #toggleButton:hover {
+            background-color: #4682B4;
         }
     </style>
 </head>
 <body>
     <h1 style="text-align:center;">DASHBOARD SOFT E HARD SKILLS</h1>
+    <button id="toggleButton">Alternar para Visualização Mobile</button>
 
-    <!-- Indicadores numéricos -->
-    <div class="dashboard">
-        <div class="card">
-            <h2>Trabalho em Equipe</h2>
-            <p id="teamwork-score">0</p>
-        </div>
-        <div class="card">
-            <h2>Gestão de Tempo</h2>
-            <p id="time-management-score">0</p>
-        </div>
-        <div class="card">
-            <h2>Tecnologia</h2>
-            <p id="tech-score">0</p>
-        </div>
-    </div>
-
-    <!-- Teste de Soft Skills -->
-    <div class="dashboard">
-        <div class="question-container">
-            <div class="question" id="question">Aguarde, carregando pergunta...</div>
-            <div class="options" id="options"></div>
-        </div>
-    </div>
-
+    <!-- Resultados do Teste -->
     <div id="result-section">
         <h2>Resultados do Teste</h2>
-        <div class="dashboard">
+        <div class="dashboard desktop-view">
             <div class="card">
                 <h2>Soft Skills</h2>
                 <p id="soft-skills-score">0</p>
@@ -127,31 +116,63 @@
             <h3>Recomendações de Cursos</h3>
             <p>Confira os cursos oferecidos pela Fundação Bradesco: <a href="https://www.ev.org.br/cursos" target="_blank">Cursos da Fundação Bradesco</a></p>
         </div>
+        <h2 id="congratulations-message" style="display: none; color: green;">Parabéns por concluir o teste de soft e hard skills!</h2>
+    </div>
+
+    <!-- Teste de Soft Skills -->
+    <div class="dashboard">
+        <div class="question-container" id="question-container">
+            <div class="question" id="question">Aguarde, carregando pergunta...</div>
+            <div class="options" id="options"></div>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="dashboard desktop-view">
+        <div id="pie-chart" class="card"></div>
+        <div id="line-chart" class="card"></div>
+        <div id="bar-chart" class="card"></div>
     </div>
 
     <script>
         const questions = [
+            // Soft Skills
             { question: "Você prefere trabalhar sozinho ou em equipe?", options: ["Em equipe", "Sozinho", "Ambos"], skill: "trabalhoEquipe" },
-            { question: "Como você lida com prazos curtos?", options: ["Gosto do desafio", "Me sinto pressionado", "Acho normal"], skill: "gestaoTempo" },
-            { question: "Quão confortável você se sente ao aprender novas ferramentas tecnológicas?", options: ["Muito confortável", "Confortável", "Pouco confortável", "Desconfortável"], skill: "tecnologia" },
-            { question: "Você se considera uma pessoa organizada?", options: ["Sim", "Não"], skill: "gestaoTempo" },
-            { question: "Você gosta de aprender novas habilidades?", options: ["Sim", "Não", "Às vezes"], skill: "tecnologia" },
-            { question: "Você consegue trabalhar sob pressão?", options: ["Sim", "Não"], skill: "trabalhoEquipe" },
-            { question: "Você é bom em resolver problemas?", options: ["Sim", "Não", "Às vezes"], skill: "tecnologia" },
-            { question: "Você consegue priorizar suas tarefas?", options: ["Sim", "Não"], skill: "gestaoTempo" },
-            { question: "Você se comunica bem com os outros?", options: ["Sim", "Não", "Às vezes"], skill: "trabalhoEquipe" },
-            { question: "Você se sente confortável apresentando suas ideias?", options: ["Sim", "Não", "Às vezes"], skill: "tecnologia" },
-            { question: "Você costuma pedir feedback sobre seu trabalho?", options: ["Sim", "Não"], skill: "trabalhoEquipe" },
-            { question: "Você gosta de trabalhar em projetos em grupo?", options: ["Sim", "Não", "Às vezes"], skill: "trabalhoEquipe" },
+            { question: "Como você lida com prazos?", options: ["Gosto do desafio", "Me sinto pressionado", "Acho normal"], skill: "gestaoTempo" },
+            { question: "Qual é sua relação com novas tecnologias?", options: ["Muito confortável", "Confortável", "Pouco confortável"], skill: "tecnologia" },
+            { question: "Você se considera criativo?", options: ["Sim", "Não", "Às vezes"], skill: "criatividade" },
+            { question: "Como você avalia sua capacidade de resolver problemas?", options: ["Excelente", "Boa", "Regular"], skill: "resolucaoProblemas" },
+            { question: "Você se adapta facilmente a mudanças?", options: ["Sim", "Não", "Às vezes"], skill: "adaptabilidade" },
+            { question: "Você é bom em comunicar suas ideias?", options: ["Sim", "Não", "Às vezes"], skill: "comunicacao" },
+
+            // Hard Skills
+            { question: "Qual sua experiência com Excel?", options: ["Nenhuma", "Básica", "Intermediária", "Avançada"], skill: "hardSkillsExcel" },
+            { question: "Você já trabalhou com programação?", options: ["Sim", "Não"], skill: "hardSkillsProgramacao" },
+            { question: "Qual sua experiência com ferramentas de design?", options: ["Nenhuma", "Básica", "Intermediária", "Avançada"], skill: "hardSkillsDesign" },
+            { question: "Você já utilizou ferramentas de análise de dados?", options: ["Sim", "Não"], skill: "hardSkillsAnalise" },
+            { question: "Você já participou de projetos de equipe?", options: ["Sim", "Não"], skill: "hardSkillsEquipe" },
+            { question: "Você já fez cursos online sobre habilidades técnicas?", options: ["Sim", "Não"], skill: "hardSkillsCursos" },
+            { question: "Você se sente confortável com programação?", options: ["Sim", "Não", "Às vezes"], skill: "hardSkillsProgramacao" }
         ];
 
         const skills = {
             trabalhoEquipe: 0,
             gestaoTempo: 0,
             tecnologia: 0,
+            criatividade: 0,
+            resolucaoProblemas: 0,
+            adaptabilidade: 0,
+            comunicacao: 0,
+            hardSkillsExcel: 0,
+            hardSkillsProgramacao: 0,
+            hardSkillsDesign: 0,
+            hardSkillsAnalise: 0,
+            hardSkillsEquipe: 0,
+            hardSkillsCursos: 0
         };
 
         let currentQuestion = 0;
+        let scoresOverTime = [];
 
         function loadQuestion() {
             document.getElementById('question').textContent = questions[currentQuestion].question;
@@ -165,134 +186,124 @@
                 optionElement.addEventListener('click', selectOption);
                 optionsContainer.appendChild(optionElement);
             });
+            // Esconder mensagem de carregamento
+            document.getElementById('question').style.display = 'block';
         }
 
         function selectOption(event) {
             const answer = event.target.getAttribute('data-answer');
             const skill = questions[currentQuestion].skill;
             const scoreMap = {
-                "Em equipe": 5,
-                "Sozinho": 2,
-                "Ambos": 3,
-                "Gosto do desafio": 5,
-                "Me sinto pressionado": 2,
-                "Acho normal": 3,
-                "Muito confortável": 5,
-                "Confortável": 4,
-                "Pouco confortável": 3,
-                "Desconfortável": 2,
-                "Sim": 5,
-                "Não": 2,
-                "Às vezes": 3,
+                "Em equipe": 5, "Sozinho": 2, "Ambos": 3,
+                "Gosto do desafio": 5, "Me sinto pressionado": 2, "Acho normal": 3,
+                "Muito confortável": 5, "Confortável": 4, "Pouco confortável": 3,
+                "Desconfortável": 2, "Sim": 5, "Não": 2, "Às vezes": 3,
+                "Excelente": 5, "Boa": 4, "Regular": 3,
+                "Básica": 3, "Intermediária": 4, "Avançada": 5,
+                "Nenhuma": 1
             };
-            skills[skill] += scoreMap[answer] || 3;
 
-            // Marcar a opção selecionada
-            document.querySelectorAll('.option').forEach(option => {
-                option.classList.remove('selected');
-            });
-            event.target.classList.add('selected');
+            if (scoreMap[answer] !== undefined) {
+                skills[skill] += scoreMap[answer];
+            }
 
-            // Avançar para a próxima pergunta
+            scoresOverTime.push(getTotalScore());
+
             currentQuestion++;
-            setTimeout(() => {
-                if (currentQuestion < questions.length) {
-                    loadQuestion();
-                } else {
-                    showResults();
-                }
-            }, 500); // Atraso de 500ms
+            if (currentQuestion < questions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function getTotalScore() {
+            return Object.values(skills).reduce((a, b) => a + b, 0);
         }
 
         function showResults() {
+            document.getElementById('question-container').style.display = 'none';
             document.getElementById('result-section').style.display = 'block';
-            document.getElementById('teamwork-score').textContent = skills.trabalhoEquipe;
-            document.getElementById('time-management-score').textContent = skills.gestaoTempo;
-            document.getElementById('tech-score').textContent = skills.tecnologia;
+            document.getElementById('soft-skills-score').textContent = skills.trabalhoEquipe + skills.gestaoTempo + skills.tecnologia + skills.criatividade + skills.resolucaoProblemas + skills.adaptabilidade + skills.comunicacao;
+            document.getElementById('hard-skills-score').textContent = skills.hardSkillsExcel + skills.hardSkillsProgramacao + skills.hardSkillsDesign + skills.hardSkillsAnalise + skills.hardSkillsEquipe + skills.hardSkillsCursos;
 
-            // Calcular scores
-            const softSkillsScore = skills.trabalhoEquipe + skills.gestaoTempo;
-            const hardSkillsScore = skills.tecnologia;
+            // Mostrar mensagem de congratulação
+            document.getElementById('congratulations-message').style.display = 'block';
 
-            document.getElementById('soft-skills-score').textContent = softSkillsScore;
-            document.getElementById('hard-skills-score').textContent = hardSkillsScore;
+            // Criar Gráficos
+            createCharts();
+        }
 
-            // Gráficos de resultados
-            Plotly.newPlot('bar-chart', [{
-                x: ['Soft Skills', 'Hard Skills'],
-                y: [softSkillsScore, hardSkillsScore],
-                type: 'bar',
-                marker: {color: ['rgba(76, 175, 80, 0.8)', 'rgba(0, 123, 255, 0.8)']}
-            }], {title: 'Desempenho em Soft e Hard Skills',            layout: {
-                xaxis: { title: 'Tipo de Habilidade' },
+        function createCharts() {
+            const softSkillsScore = skills.trabalhoEquipe + skills.gestaoTempo + skills.tecnologia + skills.criatividade + skills.resolucaoProblemas + skills.adaptabilidade + skills.comunicacao;
+            const hardSkillsScore = skills.hardSkillsExcel + skills.hardSkillsProgramacao + skills.hardSkillsDesign + skills.hardSkillsAnalise + skills.hardSkillsEquipe + skills.hardSkillsCursos;
+
+            // Gráfico de Pizza
+            const pieData = [{
+                labels: ['Soft Skills', 'Hard Skills'],
+                values: [softSkillsScore, hardSkillsScore],
+                type: 'pie'
+            }];
+
+            const pieLayout = {
+                title: 'Distribuição de Soft e Hard Skills',
+                showlegend: true
+            };
+
+            Plotly.newPlot('pie-chart', pieData, pieLayout);
+
+            // Gráfico de Linha
+            const lineData = [{
+                x: Array.from({ length: scoresOverTime.length }, (_, i) => i + 1),
+                y: scoresOverTime,
+                type: 'scatter'
+            }];
+
+            const lineLayout = {
+                title: 'Progressão de Pontuação ao Longo do Teste',
+                xaxis: { title: 'Perguntas' },
                 yaxis: { title: 'Pontuação' },
-                showlegend: false,
-                paper_bgcolor: '#f4f4f9',
-                plot_bgcolor: '#fff',
-                font: { color: '#333' }
-            }
-        });
+                showlegend: false // Remover a legenda do gráfico de linhas
+            };
 
-        Plotly.newPlot('line-chart', [{
-            x: ['Trabalho em Equipe', 'Gestão de Tempo', 'Tecnologia'],
-            y: [skills.trabalhoEquipe, skills.gestaoTempo, skills.tecnologia],
-            mode: 'lines+markers',
-            type: 'scatter',
-            marker: { size: 10, color: 'rgba(255, 165, 0, 0.8)' }
-        }], {
-            title: 'Desempenho em Habilidades Específicas',
-            layout: {
-                xaxis: { title: 'Habilidades' },
-                yaxis: { title: 'Pontuação' },
-                paper_bgcolor: '#f4f4f9',
-                plot_bgcolor: '#fff',
-                font: { color: '#333' }
-            }
-        });
+            Plotly.newPlot('line-chart', lineData, lineLayout);
 
-        Plotly.newPlot('pie-chart', [{
-            values: [softSkillsScore, hardSkillsScore],
-            labels: ['Soft Skills', 'Hard Skills'],
-            type: 'pie',
-            marker: { colors: ['rgba(76, 175, 80, 0.8)', 'rgba(0, 123, 255, 0.8)'] },
-            textinfo: 'label+percent',
-            hoverinfo: 'label+value'
-        }], {
-            title: 'Distribuição de Habilidades',
-            layout: {
-                paper_bgcolor: '#f4f4f9',
-                plot_bgcolor: '#fff',
-                font: { color: '#333' }
-            }
-        });
+            // Gráfico de Barras
+            const barData = [{
+                x: [
+                    'Trabalho em Equipe',
+                    'Gestão do Tempo',
+                    'Tecnologia',
+                    'Criatividade',
+                    'Resolução de Problemas',
+                    'Adaptabilidade',
+                    'Comunicação',
+                    'Excel',
+                    'Programação',
+                    'Design',
+                    'Análise de Dados',
+                    'Trabalho em Equipe',
+                    'Cursos'
+                ],
+                y: Object.values(skills),
+                type: 'bar'
+            }];
 
-        // Exibir recomendações de cursos com base na pontuação
-        const coursesContainer = document.getElementById('courses');
-        const recommendations = [];
-        if (softSkillsScore > 15) {
-            recommendations.push("Curso Avançado em Liderança");
-        } else {
-            recommendations.push("Curso Básico em Comunicação Eficaz");
+            const barLayout = {
+                title: 'Pontuação por Categoria de Habilidades',
+                xaxis: { title: 'Categorias' },
+                yaxis: { title: 'Pontuação' }
+            };
+
+            Plotly.newPlot('bar-chart', barData, barLayout);
         }
 
-        if (hardSkillsScore > 15) {
-            recommendations.push("Curso Avançado em Ferramentas Tecnológicas");
-        } else {
-            recommendations.push("Curso Básico em Informática");
-        }
+        document.getElementById('toggleButton').addEventListener('click', function () {
+            const isMobileView = document.body.classList.toggle('mobile-view');
+            this.textContent = isMobileView ? 'Alternar para Visualização Desktop' : 'Alternar para Visualização Mobile';
+        });
 
-        coursesContainer.innerHTML += `<ul>${recommendations.map(course => `<li>${course}</li>`).join('')}</ul>`;
-        }
-
-        // Carregar a primeira pergunta ao iniciar
-        window.onload = loadQuestion;
+        loadQuestion();
     </script>
-
-    <!-- Gráficos -->
-    <div class="dashboard">
-        <div id="bar-chart"></div>
-        <div id="line-chart"></div>
-        <div id="pie-chart"></div>
-    </div>
 </body>
 </html>
